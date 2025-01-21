@@ -12,7 +12,8 @@ from tests.utils import make_alembic_config, tmp_database
 @pytest.fixture(scope="package", name="pg_url")
 def pg_url_fixture() -> str:
     """
-    Формирование URL для тестовой БД с localhost
+    Create URL for test database with localhost.
+    :return: URL with database.
     """
     config.DB_HOST = "localhost"
     return config.dsn
@@ -21,9 +22,11 @@ def pg_url_fixture() -> str:
 @pytest.fixture(name="postgres")
 def postgres_fixture(pg_url: str) -> Iterator[str]:
     """
-    На вход принимается pg_url из предыдущей фикстуры с localhost.
-    Эти параметры передаем в контекстный менеджер tmp_database,
-    возвращаем - новый URL с новым именем для тестовой БД
+    Create main URL for test database.
+
+    :param pg_url: URL with localhost on previous fixture.
+    :return: main URL for test database.
+
     """
     with tmp_database(pg_url, db_name="test_db") as tmp_url:
         yield tmp_url
@@ -34,8 +37,10 @@ def postgres_engine_fixture(
     postgres: str,
 ) -> Iterator[Engine]:
     """
-    На вход принимается полностью сформированный тестовый URL
-    из предыдущей фикстуры и создается engine
+    Create engine for test database.
+
+    :param postgres: main URL for test database on previous fixture.
+    :return: engine for connect with test database.
     """
     engine = create_engine(postgres, echo=False)
     try:
@@ -47,8 +52,9 @@ def postgres_engine_fixture(
 @pytest.fixture(name="alembic_config")
 def alembic_config_fixture(postgres: str) -> Config:
     """
-    На вход принимаем полностью сформированный тестовый URL
-    и передается в функцию, которая преобразовывает alembic 
-    как тестовый для тестов с миграциями
+    Update alembic config for test database.
+
+    :param postgres: main URL for test database on postgres_fixture.
+    :return: alembic config for test database.
     """
     return make_alembic_config(postgres, "app")

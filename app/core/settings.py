@@ -5,7 +5,7 @@ from pydantic_settings import BaseSettings
 
 
 class Config(BaseSettings):
-
+    # путь до alembic.ini для тестов
     ROOT_DIR: Path = Path(__file__).parent.parent.resolve()
 
     POSTGRES_USER: str = "user"

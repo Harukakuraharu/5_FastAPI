@@ -12,11 +12,13 @@ from sqlalchemy.engine.base import Engine
 from models import Base
 
 
+"""
+Тест для проверки, что миграции были созданы: compare_metadata сравнивает миграцию локально и ту, которая была создана в тесте.
+Принимает сформированный config для alembic для тестов от make_alembic_config и движок от фикстуры postgres_engine_fixture
+"""
 def test_migrations_up_to_date(
     alembic_config: Config, postgres_engine: Engine
 ):
-    """Тест для проверки, что миграции были созданы: compare_metadata сравнивает миграцию локально и ту, которая была создана в тесте
-    передали сформированный конфиг алембика для тестов от make_alembic_config и движок от фикстуры postgres_engine_fixture"""
     upgrade(alembic_config, "head")
 
     migration_ctx = MigrationContext.configure(postgres_engine.connect())

@@ -11,17 +11,23 @@ from sqlalchemy.ext.asyncio import create_async_engine
 from core.settings import config as project_config
 
 
+
+# Функция для создания нового alembic config  для тестов, т.к. в файле env.py у alembic 
+# подвязан под основую БД, которая будет использоваться в проекте.
+# project_config.ROOT_DIR - формируем путь до alembic.ini,
+# далее подменяем is_testing на True (по дефолту False), а базовый
+# URL sqlalchemy.url до сгенерированного нового (в фикстурах), в конце
+# указываем папку для миграций в script_location,т.к. alembic сам не видит путь
 def make_alembic_config(
     dsn: str, script_location: str | None = None
 ) -> Config:
     """
-    Создается новый конфиг для алембика. По дефолту основной в конф.файл env.py
-    подвязан под основую БД, которая будет использоваться в проекте.
-    project_config.ROOT_DIR - папка app - cначала формируем путь до alembicini,
-    далее подменяем is_testing на True (по дефолту False), а базовый
-    URL sqlalchemy.url до сгенерированного нового (в фикстурах), в конце
-    указываем папку для миграций в script_location,
-    т.к. alembic сам не видит путь
+    Create alembic.config for tests for create test database.
+
+    :param dsn: main URL for test database on postgres_fixture.
+    :param script_location: name path for alembic
+
+    :return: alembic config for test database.
     """
     alembic_cfg = Config(f"{project_config.ROOT_DIR}/alembic.ini")
     alembic_cfg.set_main_option("is_testing", "True")
@@ -34,18 +40,24 @@ def make_alembic_config(
     return alembic_cfg
 
 
+
+# Создание БД с URL, сформированным в tmp_database.
+# make_url формирует URL для подключения, который будет принимает SQLAlchemy
+# URL с "postgres" уже существует по дефолту, т.е. ее создавать не нужно,
+# можно подкючаться сразу через create_engine
+# и создать движок на основе postgres и тестовую БД с тестовым именем.
 def create_database(
     url: str,
     template: str = "template1",
     encoding: str = "utf8",
 ) -> None:
     """
-    Создание БД с URL, сформированным в tmp_database.
-    make_url формирует URL, который принимает SQLAlchemy
-    URL с "postgres" существует по дефолту, т.е. ее создавать
-    не нужно, можно подкючаться сразу через create_engine и создать движок.
-    main_url содержит урл с именем постгрес для подкючения
-    На основе этого движка создается БД с тестовым именем.
+    Create database with test url.
+
+    :param url: main URL for test database on postgres_fixture.
+    :param template: name template for in test database.
+    :param encodind: encoding for create test database
+
     """
     url_obj = make_url(url)
     main_url = url_obj._replace(database="postgres")
@@ -62,7 +74,10 @@ def create_database(
 
 def drop_database(url: str) -> None:
     """
-    Функция для удаления тестовой БД
+    Delete test database
+
+    :param url: main URL for test database on postgres_fixture.
+
     """
     url_obj = make_url(url)
     main_url = url_obj._replace(database="postgres")
@@ -86,7 +101,12 @@ async def async_create_database(
     encoding: str = "utf8",
 ) -> None:
     """
-    Создание БД асинхронно, как в create_database
+    Async create database with test url
+
+    :param url: main URL for test database on postgres_fixture.
+    :param template: name template for in test database.
+    :param encodind: encoding for create test database
+
     """
     url_obj = make_url(url)
     main_url = url_obj._replace(database="postgres")
@@ -103,7 +123,10 @@ async def async_create_database(
 
 async def async_drop_database(url: str) -> None:
     """
-    Удаление БД асинхронно, как в drop_database
+    Async delete test database
+
+    :param url: main URL for test database on postgres_fixture.
+
     """
     url_obj = make_url(url)
     main_url = url_obj._replace(database="postgres")
@@ -121,11 +144,17 @@ async def async_drop_database(url: str) -> None:
     await engine.dispose()
 
 
+
+# Формирование URL для тестовой БД для миграций, 
+# на вход передается URL для подключения от фикстур
 @contextmanager
 def tmp_database(str_url: str, db_name: str = "", **kwargs) -> Iterator[str]:
     """
-    Формирование URL для тестовой БД для миграций,
-    на вход передается URL для подключения от фикстур
+    Create URL for test database
+
+    :param str_url: URL with localhost on fixture.
+    :param db_name: name for test database.
+
     """
     tmp_db_url = urlsplit(str_url)
     str_url = urlunsplit(tmp_db_url._replace(path=f"/{db_name}"))
@@ -142,8 +171,11 @@ async def async_tmp_database(
     str_url: str, db_name: str = "", **kwargs
 ) -> AsyncIterator[str]:
     """
-    Асинхронное формирование URL для тестовой БД для миграций,
-    на вход передается URL для подключения от фикстур
+    Async create URL for test database
+
+    :param str_url: URL with localhost on fixture.
+    :param db_name: name for test database.    
+    
     """
     tmp_db_url = urlsplit(str_url)
     str_url = urlunsplit(tmp_db_url._replace(path=f"/{db_name}"))
