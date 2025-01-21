@@ -1,8 +1,9 @@
 from fastapi import FastAPI
 
+from api.api import spimex_routers
+
+
 app = FastAPI()
 
 
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
+app.include_router(spimex_routers)
