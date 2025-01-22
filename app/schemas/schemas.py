@@ -1,15 +1,10 @@
-
 import datetime
-from typing import Annotated, Optional
 
-from pydantic import BaseModel, ConfigDict, Field
-from pydantic.functional_validators import AfterValidator
-
-import models
+from pydantic import BaseModel, ConfigDict
 
 
 class DateListResponse(BaseModel):
-    date: str
+    date: datetime.date
 
 
 class DynamicsParams(BaseModel):
@@ -35,3 +30,9 @@ class GetDynamicsResponse(BaseModel):
     created_on: datetime.datetime
     updated_on: datetime.datetime
     model_config = ConfigDict(from_attributes=True)
+
+
+class TradingResultsParams(BaseModel):
+    oil_id: str | None = None
+    delivery_type_id: str | None = None
+    delivery_basis_id: str | None = None
