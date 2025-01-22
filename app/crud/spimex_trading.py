@@ -19,7 +19,7 @@ class SpimexTradingCrud(BaseCrud):
             .limit(items_id)
         )
         result = await self.session.execute(stmt)
-        return result.all()
+        return result.scalars().all()
 
     async def get_dynamics_params(
         self, date_start: date, date_end: date, data: dict | None = None
@@ -34,8 +34,8 @@ class SpimexTradingCrud(BaseCrud):
 
     async def get_trading_results_params(self, data: dict | None = None):
         stmt = sa.select(self.model).where(
-            self.model.date == sa.select(sa.func.max(self.model.date))
-        )
+            self.model.date == (sa.select(sa.func.max(self.model.date))
+        ).scalar_subquery())
         if data is not None:
             stmt = stmt.filter_by(**data)
         result = await self.session.scalars(stmt)

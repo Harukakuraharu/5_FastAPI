@@ -1,4 +1,5 @@
 from typing import Any, Literal
+
 import sqlalchemy as sa
 from fastapi import HTTPException, status
 from sqlalchemy.exc import IntegrityError
@@ -45,7 +46,6 @@ class BaseCrud:
                 status.HTTP_404_NOT_FOUND, f"{self.model.__name__} not found"
             )
         return response
-
 
 
 class BaseCrudRestrict(BaseCrud):

@@ -1,12 +1,8 @@
-from pathlib import Path
-
 from pydantic import computed_field
 from pydantic_settings import BaseSettings
 
 
 class Config(BaseSettings):
-    # путь до alembic.ini для тестов
-    ROOT_DIR: Path = Path(__file__).parent.parent.resolve()
 
     POSTGRES_USER: str = "user"
     POSTGRES_PASSWORD: str = "user"
@@ -16,9 +12,11 @@ class Config(BaseSettings):
 
     REDIS_HOST: str = "localhost"
 
+    TIMEZONE: str = 'Asia/Yekaterinburg'
+
     @computed_field
     def async_dsn(self) -> str:
-        """Ссылка для асинхронного подключения к БД"""
+        """URL for DB"""
         return (
             f"postgresql+asyncpg://{self.POSTGRES_USER}:"
             f"{self.POSTGRES_PASSWORD}@{self.DB_HOST}:"
@@ -27,12 +25,22 @@ class Config(BaseSettings):
 
     @computed_field
     def dsn(self) -> str:
-        """Ссылка для синхронного подключения к БД, для алембика"""
+        """URL for alembic"""
         return (
             f"postgresql://{self.POSTGRES_USER}:"
             f"{self.POSTGRES_PASSWORD}@{self.DB_HOST}:"
             f"{self.DB_PORT}/{self.POSTGRES_DB}"
         )
+
+    @computed_field
+    def redis_url(self) -> str:
+        """URL for Redis"""
+        return f"redis://{self.REDIS_HOST}:6379/1"
+
+    @computed_field
+    def celery_url(self) -> str:
+        """URL for Celery"""
+        return f"redis://{self.REDIS_HOST}:6379/2"
 
 
 config = Config()
