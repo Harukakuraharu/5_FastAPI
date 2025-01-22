@@ -2,9 +2,9 @@ from typing import Annotated
 
 from fastapi import Depends, Query
 from fastapi.routing import APIRouter
+from services import services
 
 from core import dependency
-from crud.spimex_trading import SpimexTradingCrud
 from schemas import schemas
 
 
@@ -19,10 +19,12 @@ async def get_last_trading_dates(
     days_count: Annotated[int, Query(ge=1)],
 ):
     """
-    Получение списка дат последних торговых дней (фильтрация по кол-ву последних торговых дней)
+    Получение списка дат последних торговых дней
+    (фильтрация по кол-ву последних торговых дней)
     """
-    days = await SpimexTradingCrud(session).get_items_id(days_count)
-    return days
+    return await services.TradeService(session).get_last_trading_dates(
+        days_count
+    )
 
 
 @spimex_routers.get(
@@ -34,16 +36,10 @@ async def get_dynamics(
 ):
     """
     Получение списка торгов за заданный период
-    (фильтрация по oil_id, delivery_type_id, delivery_basis_id, start_date, end_date).
+    (фильтрация по oil_id, delivery_type_id, delivery_basis_id, 
+    start_date, end_date).
     """
-    data = params.model_dump(exclude_unset=True)
-    data = {key: value for key, value in data.items() if value is not None}
-    start_date = data.pop("start_date")
-    end_date = data.pop("end_date")
-    response = await SpimexTradingCrud(session).get_dynamics_params(
-        start_date, end_date, data or None
-    )
-    return response
+    return await services.TradeService(session).get_dynamics(params)
 
 
 @spimex_routers.get(
@@ -57,9 +53,4 @@ async def get_trading_results(
     Получение списка последних торгов
     (фильтрация по oil_id, delivery_type_id, delivery_basis_id)
     """
-    data = params.model_dump(exclude_unset=True)
-    data = {key: value for key, value in data.items() if value is not None}
-    response = await SpimexTradingCrud(session).get_trading_results_params(
-        data or None
-    )
-    return response
+    return await services.TradeService(session).get_trading_results(params)
