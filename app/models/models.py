@@ -19,7 +19,7 @@ class SpimexTradingResults(Base):
     volume: Mapped[str]
     total: Mapped[str]
     count: Mapped[str]
-    date: Mapped[str]
+    date: Mapped[datetime.date]
     created_on: Mapped[datetime.datetime] = mapped_column(
         server_default=func.now()  # pylint: disable=E1102
     )

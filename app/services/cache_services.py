@@ -19,5 +19,5 @@ class CacheTrade:
             return json.loads(cached_data)
 
     async def set_cache(self, data):
-        self.redis_client.set(self.cache_key, data, ex=1000)
+        self.redis_client.set(self.cache_key, data)
         return json.loads(data)

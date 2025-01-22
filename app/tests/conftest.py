@@ -1,23 +1,24 @@
-from typing import AsyncIterator
+from typing import AsyncIterator, Type
 
 import pytest
 from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
+from services.cache_services import redis_client
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from core.dependency import get_session
 from core.settings import config
 from main import app
 from models import Base
-from tests import utils
+from tests import factory, utils
 
 
-@pytest.fixture(scope="package")
+@pytest.fixture(scope="session")
 def anyio_backend():
     return "asyncio"
 
 
-@pytest.fixture(scope="package", name="pg_url")
+@pytest.fixture(scope="session", name="pg_url")
 def pg_url_fixture() -> str:
     """
     Формирование URL для тестовой БД с localhost
@@ -26,7 +27,7 @@ def pg_url_fixture() -> str:
     return config.async_dsn  # type: ignore[return-value]
 
 
-@pytest.fixture(scope="package", autouse=True, name="postgres_temlate")
+@pytest.fixture(scope="session", autouse=True, name="postgres_temlate")
 async def postgres_temlate_fixture(pg_url: str) -> AsyncIterator[str]:
     """
     Создаем шаблонную БД с миграциями для создания других БД.
@@ -99,3 +100,21 @@ async def client_fixture(test_app: FastAPI) -> AsyncIterator[AsyncClient]:
         transport=ASGITransport(app=test_app), base_url="http://test"
     ) as async_client:
         yield async_client
+
+
+@pytest.fixture(name="factory")
+async def factory_fixture(async_session: AsyncSession):
+    async def wrapper(cls: Type[factory.MainFactory], count=1, **kwargs):
+        result = await cls(async_session).generate_data(count, **kwargs)
+        if len(result) == 1:
+            return result[0]
+        return result
+
+    return wrapper
+
+
+@pytest.fixture(name="clear_redis", autouse=True)
+async def clear_redis_fixture():
+    yield
+    if redis_client.keys():
+        redis_client.delete(*redis_client.keys())
