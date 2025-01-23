@@ -22,6 +22,6 @@ def clear_cache():
 celery_app.conf.beat_schedule = {
     "clear-every-day": {
         "task": "core.celery_app.clear_cache",
-        "schedule": crontab(hour=16, minute=30),  # type: ignore[arg-type]
+        "schedule": crontab(hour=14, minute=11),  # type: ignore[arg-type]
     },
 }
