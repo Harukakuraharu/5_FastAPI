@@ -17,7 +17,7 @@ services:
     container_name: parser
     env_file:
       - .env
-    restart: always
+    restart: on-failure
     command: python main.py
     volumes:
       - ./parser:/parser
